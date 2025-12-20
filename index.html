@@ -24,6 +24,7 @@
             color: #ffffff;
             overflow-x: hidden;
             width: 100%;
+            touch-action: manipulation;
         }
 
         /* --- Full Moon & Stars --- */
@@ -47,11 +48,11 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 2000; /* Higher than confetti */
+            z-index: 2000;
         }
         .shooting-star {
             position: absolute;
-            width: 200px; /* Longer tail */
+            width: 200px;
             height: 3px;
             background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(247,215,148,0.8) 20%, transparent 100%);
             border-radius: 50%;
@@ -71,7 +72,7 @@
             box-shadow: 0 0 15px #fff, 0 0 30px #fff;
         }
         .shooting-star.animate {
-            animation: superShoot 2.2s cubic-bezier(0.1, 0.5, 0.3, 1) forwards;
+            animation: superShoot 1.2s cubic-bezier(0.1, 0.5, 0.3, 1) forwards;
         }
         @keyframes superShoot {
             0% { transform: translate(100vw, -10vh) rotate(-35deg); opacity: 0; width: 0; }
@@ -90,7 +91,7 @@
         }
         .rope-handle {
             width: 50px; height: 50px; background: #d63031; border-radius: 50%;
-            border: 3px solid var(--secondary-gold); cursor: grab;
+            border: 3px solid var(--secondary-gold); cursor: pointer;
             box-shadow: 0 0 20px rgba(214, 48, 49, 0.6);
             display: flex; align-items: center; justify-content: center;
             font-size: 1rem; user-select: none;
@@ -151,7 +152,7 @@
         .page-front { background: #5a0000; border-left: 10px solid #3d0000; color: var(--secondary-gold); }
         .page-back { background: #fdf6e3; transform: rotateY(180deg); color: #222; text-align: left; overflow: hidden; }
 
-        /* --- Cinematic Gift Animation --- */
+        /* --- Gift --- */
         .gift-container { position: relative; width: 140px; height: 120px; cursor: pointer; margin: 40px auto; perspective: 1500px; }
         .gift-box { width: 100%; height: 100%; background: #d63031; border-radius: 4px; position: relative; transition: 0.8s; z-index: 2; transform-origin: bottom; }
         .gift-lid { 
@@ -189,7 +190,7 @@
             100% { transform: translate(-50%, -200px) scale(4); opacity: 0; }
         }
 
-        /* --- Photo Gallery --- */
+        /* --- Gallery --- */
         .mini-gallery {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -321,6 +322,57 @@
     </section>
 
     <script>
+        // --- Audio Management (Fixed for Mobile) ---
+        let audioCtx = null;
+        let melodyStarted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleMusic() {
+            initAudio();
+            const btn = document.getElementById('music-btn');
+            
+            if (!melodyStarted) {
+                playMelody();
+                melodyStarted = true;
+                btn.innerHTML = '⏸';
+            } else if (audioCtx.state === 'running') {
+                audioCtx.suspend();
+                btn.innerHTML = '🎵';
+            } else {
+                audioCtx.resume();
+                btn.innerHTML = '⏸';
+            }
+        }
+
+        function playMelody() {
+            const notes = [261.63, 261.63, 293.66, 261.63, 349.23, 329.63];
+            let i = 0;
+            function next() {
+                if (!audioCtx || audioCtx.state !== 'running') {
+                    setTimeout(next, 500); // Wait until resumed
+                    return;
+                }
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(notes[i % notes.length], audioCtx.currentTime);
+                g.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.8);
+                i++; setTimeout(next, 800);
+            }
+            next();
+        }
+
         // --- Rope Logic ---
         const handle = document.getElementById('rope-handle');
         const line = document.getElementById('rope-line');
@@ -329,7 +381,10 @@
         let startY = 0;
 
         handle.addEventListener('mousedown', startPull);
-        handle.addEventListener('touchstart', startPull);
+        handle.addEventListener('touchstart', (e) => {
+            initAudio(); // Crucial: Resume audio on first touch
+            startPull(e);
+        }, { passive: false });
 
         function startPull(e) {
             isDragging = true;
@@ -338,10 +393,11 @@
         }
 
         window.addEventListener('mousemove', pull);
-        window.addEventListener('touchmove', pull);
+        window.addEventListener('touchmove', pull, { passive: false });
 
         function pull(e) {
             if (!isDragging) return;
+            if (e.cancelable) e.preventDefault();
             const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             const diff = Math.max(0, currentY - startY);
             if (diff < 180) {
@@ -370,15 +426,18 @@
             curtain.classList.add('opened');
             document.getElementById('rope-system').style.transform = 'translateY(-100vh)';
             startConfetti(80);
-            if (!audioCtx) toggleMusic();
+            
+            // Auto-play music if not started
+            if (!melodyStarted) {
+                toggleMusic();
+            }
         }
 
-        // --- Interactive ---
+        // --- Interactive Functions ---
         function blowCandle(el) {
             if(el.classList.contains('blown')) return;
             el.classList.add('blown');
             document.getElementById('cake-hint').innerText = "Make a Wish! ✨";
-            
             triggerShootingStar();
             startConfetti(100);
         }
@@ -406,11 +465,7 @@
             function type() {
                 if(i < msg.length) {
                     let char = msg.charAt(i);
-                    if (char === "\n") {
-                        el.innerHTML += "<br>";
-                    } else {
-                        el.innerHTML += char;
-                    }
+                    el.innerHTML += (char === "\n") ? "<br>" : char;
                     i++;
                     setTimeout(type, 60);
                 }
@@ -442,41 +497,6 @@
         }, { threshold: 0.15 });
         document.querySelectorAll('section').forEach(s => observer.observe(s));
 
-        // --- Music ---
-        let audioCtx = null;
-        function toggleMusic() {
-            const btn = document.getElementById('music-btn');
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                playMelody();
-                btn.innerHTML = '⏸';
-            } else if (audioCtx.state === 'running') {
-                audioCtx.suspend();
-                btn.innerHTML = '🎵';
-            } else {
-                audioCtx.resume();
-                btn.innerHTML = '⏸';
-            }
-        }
-
-        function playMelody() {
-            const notes = [261.63, 261.63, 293.66, 261.63, 349.23, 329.63];
-            let i = 0;
-            function next() {
-                if (!audioCtx || audioCtx.state !== 'running') return;
-                const osc = audioCtx.createOscillator();
-                const g = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(notes[i % notes.length], audioCtx.currentTime);
-                g.gain.setValueAtTime(0.03, audioCtx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
-                osc.connect(g); g.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.8);
-                i++; setTimeout(next, 800);
-            }
-            next();
-        }
-
         // --- Confetti ---
         const canvas = document.getElementById('confetti');
         const ctx = canvas.getContext('2d');
@@ -506,9 +526,14 @@
         }
         animateConfetti();
         
-        const style = document.createElement('style');
-        style.innerHTML = `@keyframes flicker { from { opacity: 0.2; } to { opacity: 1; } }`;
-        document.head.appendChild(style);
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        const extraStyle = document.createElement('style');
+        extraStyle.innerHTML = `@keyframes flicker { from { opacity: 0.2; } to { opacity: 1; } }`;
+        document.head.appendChild(extraStyle);
     </script>
 </body>
 </html>
