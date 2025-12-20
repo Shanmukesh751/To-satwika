@@ -12,6 +12,8 @@
             --secondary-gold: #f7d794;
             --night-black: #020408;
             --moon-glow: rgba(247, 215, 148, 0.4);
+            --cake-color: #ffb7c5;
+            --frosting: #fff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -37,7 +39,47 @@
             z-index: 0; opacity: 0.9;
         }
 
-        /* --- Physics Rope Pull --- */
+        /* --- Prominent Shooting Star --- */
+        #shooting-star-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2000; /* Higher than confetti */
+        }
+        .shooting-star {
+            position: absolute;
+            width: 200px; /* Longer tail */
+            height: 3px;
+            background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(247,215,148,0.8) 20%, transparent 100%);
+            border-radius: 50%;
+            filter: drop-shadow(0 0 10px #fff) drop-shadow(0 0 20px var(--secondary-gold));
+            opacity: 0;
+        }
+        .shooting-star::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #fff, 0 0 30px #fff;
+        }
+        .shooting-star.animate {
+            animation: superShoot 2.2s cubic-bezier(0.1, 0.5, 0.3, 1) forwards;
+        }
+        @keyframes superShoot {
+            0% { transform: translate(100vw, -10vh) rotate(-35deg); opacity: 0; width: 0; }
+            20% { opacity: 1; width: 300px; }
+            100% { transform: translate(-20vw, 80vh) rotate(-35deg); opacity: 0; width: 100px; }
+        }
+
+        /* --- Rope Pull --- */
         .rope-system {
             position: fixed; top: 0; right: 5%; height: 100%; z-index: 1000;
             display: flex; flex-direction: column; align-items: center;
@@ -84,13 +126,19 @@
         }
         .active .wish-text { opacity: 1; transform: scale(1); }
 
-        /* --- Interactive Cake --- */
-        .cake-box { position: relative; width: 180px; height: 130px; cursor: pointer; margin: 20px auto; }
-        .cake-base { width: 100%; height: 70px; background: #ff85a2; border-radius: 8px; position: absolute; bottom: 0; border-bottom: 4px solid #ff477e; }
-        .candle { width: 10px; height: 35px; background: var(--secondary-gold); position: absolute; top: 25px; left: 50%; transform: translateX(-50%); }
+        /* --- Cake --- */
+        .cake-container { position: relative; width: 200px; height: 200px; margin: 20px auto; cursor: pointer; }
+        .cake { position: absolute; bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .cake-layer { width: 160px; height: 40px; background: var(--cake-color); border-radius: 10px; position: relative; border-bottom: 4px solid var(--deep-pink); }
+        .layer-top { width: 100px; height: 35px; z-index: 3; }
+        .layer-mid { width: 130px; height: 35px; z-index: 2; margin-top: -5px; }
+        .layer-bottom { width: 160px; height: 35px; z-index: 1; margin-top: -5px; }
+        .frosting-drip { position: absolute; top: 10px; width: 15px; height: 20px; background: var(--frosting); border-radius: 0 0 10px 10px; box-shadow: 20px 0 var(--frosting), 45px 0 var(--frosting), 70px 0 var(--frosting); }
+        .candle { width: 8px; height: 30px; background: #fff; border-bottom: 2px solid #ddd; position: absolute; top: -25px; left: 50%; transform: translateX(-50%); z-index: 4; }
         .flame { 
             width: 12px; height: 20px; background: #ffa500; border-radius: 50% 50% 20% 20%; 
-            position: absolute; top: -20px; box-shadow: 0 0 15px #ffa500;
+            position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+            box-shadow: 0 0 15px #ffa500, 0 0 30px red;
             animation: flicker 0.1s infinite alternate;
         }
         .blown .flame { display: none; }
@@ -103,14 +151,45 @@
         .page-front { background: #5a0000; border-left: 10px solid #3d0000; color: var(--secondary-gold); }
         .page-back { background: #fdf6e3; transform: rotateY(180deg); color: #222; text-align: left; overflow: hidden; }
 
-        /* --- Gift Finale --- */
-        .gift-container { position: relative; width: 110px; height: 110px; cursor: pointer; margin: 20px auto; }
-        .gift-box { width: 100%; height: 100%; background: #d63031; border-radius: 8px; position: relative; }
-        .gift-lid { position: absolute; top: -12px; left: -5%; width: 110%; height: 25px; background: #b21f1f; transition: 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2; border-radius: 5px; }
-        .gift-ribbon { position: absolute; left: 50%; transform: translateX(-50%); width: 18px; height: 100%; background: var(--secondary-gold); }
-        .opened .gift-lid { transform: translateY(-70px) rotate(25deg); opacity: 0; }
+        /* --- Cinematic Gift Animation --- */
+        .gift-container { position: relative; width: 140px; height: 120px; cursor: pointer; margin: 40px auto; perspective: 1500px; }
+        .gift-box { width: 100%; height: 100%; background: #d63031; border-radius: 4px; position: relative; transition: 0.8s; z-index: 2; transform-origin: bottom; }
+        .gift-lid { 
+            position: absolute; top: -15px; left: -5%; width: 110%; height: 35px; 
+            background: #b21f1f; transition: 1.2s cubic-bezier(0.19, 1, 0.22, 1); 
+            z-index: 10; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+        }
+        .gift-ribbon { position: absolute; left: 50%; transform: translateX(-50%); width: 22px; height: 100%; background: var(--secondary-gold); transition: 0.5s; }
+        .gift-ribbon-h { position: absolute; top: 50%; transform: translateY(-50%); width: 100%; height: 22px; background: var(--secondary-gold); transition: 0.5s; }
+        
+        .magic-cloud {
+            position: absolute;
+            top: 20%; left: 50%; transform: translate(-50%, 0) scale(0);
+            width: 80px; height: 80px;
+            background: #fff;
+            border-radius: 50%;
+            filter: blur(15px);
+            opacity: 0;
+            z-index: 1;
+            box-shadow: 0 0 40px #fff, 0 0 80px var(--secondary-gold);
+            pointer-events: none;
+        }
 
-        /* --- Paced Photo Gallery --- */
+        .opened .gift-lid { transform: translateY(-250px) rotateX(110deg) rotateZ(45deg); opacity: 0; }
+        .opened .gift-ribbon, .opened .gift-ribbon-h { transform: scale(0) translateX(-50%); opacity: 0; }
+        .opened .gift-box { transform: scale(0.8); background: #8e1a1a; }
+        .opened .magic-cloud {
+            animation: cloudRise 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes cloudRise {
+            0% { transform: translate(-50%, 0) scale(0.2); opacity: 0; }
+            30% { transform: translate(-50%, -80px) scale(1.5); opacity: 0.8; }
+            60% { transform: translate(-50%, -150px) scale(2.5); opacity: 0.4; }
+            100% { transform: translate(-50%, -200px) scale(4); opacity: 0; }
+        }
+
+        /* --- Photo Gallery --- */
         .mini-gallery {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -143,9 +222,9 @@
 
     <div id="night-sky"></div>
     <div class="full-moon"></div>
+    <div id="shooting-star-container"></div>
     <canvas id="confetti"></canvas>
 
-    <!-- Rope UI -->
     <div class="rope-system" id="rope-system">
         <div class="rope-line" id="rope-line"></div>
         <div class="rope-handle" id="rope-handle">✨</div>
@@ -154,7 +233,6 @@
 
     <button class="music-btn" onclick="toggleMusic()" id="music-btn">🎵</button>
 
-    <!-- Initial Reveal -->
     <div class="curtain" id="curtain">
         <h2 style="font-family: 'Dancing Script'; font-size: 2rem; color: var(--secondary-gold); text-align: center; padding: 20px;">For the Nightingale under the Moon...</h2>
     </div>
@@ -164,38 +242,42 @@
         <p style="letter-spacing: 5px; color: var(--primary-pink); font-size: 0.6rem; text-transform: uppercase; margin-bottom: 20px;">A Night Created Just For You</p>
         
         <div class="mini-gallery">
-            <div class="photo-card" style="--r: -3deg;"><img src="https://picsum.photos/300/300?random=1"><p>Radiance</p></div>
-            <div class="photo-card" style="--r: 4deg;"><img src="https://picsum.photos/300/300?random=2"><p>Grace</p></div>
+            <div class="photo-card" style="--r: -3deg;"><img src="pics/img1.jpg"><p>Pretty</p></div>
+            <div class="photo-card" style="--r: 4deg;"><img src="pics/img2.jpg"><p>Grace</p></div>
         </div>
 
-        <div class="cake-box" onclick="blowCandle(this)">
-            <div class="candle"><div class="flame"></div></div>
-            <div class="cake-base"></div>
-            <p id="cake-hint" style="font-size: 0.6rem; color: var(--secondary-gold); margin-top: 90px; letter-spacing: 2px;">CLICK TO BLOW</p>
+        <div class="cake-container" onclick="blowCandle(this)">
+            <div class="cake">
+                <div class="candle"><div class="flame"></div></div>
+                <div class="cake-layer layer-top"><div class="frosting-drip"></div></div>
+                <div class="cake-layer layer-mid"><div class="frosting-drip"></div></div>
+                <div class="cake-layer layer-bottom"><div class="frosting-drip"></div></div>
+            </div>
+            <p id="cake-hint" style="font-size: 0.65rem; color: var(--secondary-gold); position: absolute; bottom: -10px; width: 100%; letter-spacing: 2px; font-weight: 600;">CLICK TO BLOW</p>
         </div>
     </section>
 
     <section id="chapter-1">
         <h2 style="font-family: 'Dancing Script'; color: var(--secondary-gold); font-size: 2rem; margin-bottom: 10px;">The Nightingale's Song</h2>
-        <p style="font-size: 0.85rem; max-width: 300px; line-height: 1.6; opacity: 0.9;">You might not agree with me about ur singing, but when you sing, I would definitely stop to listen. It's a small hobby to you, but a magic potion to me.</p>
+        <p style="font-size: 0.9rem; max-width: 300px; line-height: 1.6; opacity: 0.9; font-weight: 300;">You might not agree with me about ur singing, but when you sing, I would definitely stop to listen. It's a small hobby to you, but a magic potion to me.</p>
         
         <div class="mini-gallery">
-            <div class="photo-card" style="--r: 2deg; transition-delay: 0.1s;"><img src="https://picsum.photos/300/300?music&random=3"><p>Melody</p></div>
-            <div class="photo-card" style="--r: -4deg; transition-delay: 0.3s;"><img src="https://picsum.photos/300/300?voice&random=4"><p>Rhythm</p></div>
-            <div class="photo-card" style="--r: 5deg; transition-delay: 0.5s;"><img src="https://picsum.photos/300/300?sing&random=5"><p>Soul</p></div>
-            <div class="photo-card" style="--r: -2deg; transition-delay: 0.7s;"><img src="https://picsum.photos/300/300?art&random=6"><p>Peace</p></div>
+            <div class="photo-card" style="--r: 2deg; transition-delay: 0.1s;"><img src="pics/img3.jpg"><p>Loving</p></div>
+            <div class="photo-card" style="--r: -4deg; transition-delay: 0.3s;"><img src="pics/img4.jpg"><p>Childish</p></div>
+            <div class="photo-card" style="--r: 5deg; transition-delay: 0.5s;"><img src="pics/img5.jpg"><p>Playful</p></div>
+            <div class="photo-card" style="--r: -2deg; transition-delay: 0.7s;"><img src="pics/img6.jpg"><p>Cute</p></div>
         </div>
     </section>
 
     <section id="chapter-2">
         <h2 style="font-family: 'Dancing Script'; color: var(--secondary-gold); font-size: 2rem; margin-bottom: 10px;">The Heart of Gold</h2>
-        <p style="font-size: 0.85rem; max-width: 300px; line-height: 1.6; opacity: 0.9;">A total foodie by heart and Thanks for not disowning me despite how much I trouble you.</p>
+        <p style="font-size: 0.9rem; max-width: 300px; line-height: 1.6; opacity: 0.9; font-weight: 300;">A total foodie by heart and Thanks for not disowning me despite how much I trouble you.</p>
         
         <div class="mini-gallery">
-            <div class="photo-card" style="--r: -5deg; transition-delay: 0.1s;"><img src="https://picsum.photos/300/300?food&random=7"><p>Happiness</p></div>
-            <div class="photo-card" style="--r: 3deg; transition-delay: 0.3s;"><img src="https://picsum.photos/300/300?smile&random=8"><p>Kindness</p></div>
-            <div class="photo-card" style="--r: -1deg; transition-delay: 0.5s;"><img src="https://picsum.photos/300/300?nature&random=9"><p>Pure</p></div>
-            <div class="photo-card" style="--r: 6deg; transition-delay: 0.7s;"><img src="https://picsum.photos/300/300?sun&random=10"><p>Forgiving</p></div>
+            <div class="photo-card" style="--r: -5deg; transition-delay: 0.1s;"><img src="pics/img7.jpg"><p>Happiness</p></div>
+            <div class="photo-card" style="--r: 3deg; transition-delay: 0.3s;"><img src="pics/img8.jpg"><p>Kindness</p></div>
+            <div class="photo-card" style="--r: -1deg; transition-delay: 0.5s;"><img src="pics/img9.jpg"><p>Pure</p></div>
+            <div class="photo-card" style="--r: 6deg; transition-delay: 0.7s;"><img src="pics/img10.jpg"><p>Forgiving</p></div>
         </div>
     </section>
 
@@ -204,10 +286,10 @@
             <div class="book" id="book">
                 <div class="page page-front">
                     <h3 style="font-family: 'Dancing Script'; font-size: 1.5rem;">A Page from Bro</h3>
-                    <p style="margin-top: 10px; font-size: 0.6rem; opacity: 0.7;">Chapter: Satwika</p>
+                    <p style="margin-top: 10px; font-size: 0.7rem; opacity: 0.7;">Chapter: Satwika</p>
                 </div>
                 <div class="page page-back">
-                    <p style="line-height: 1.5; font-size: 0.8rem;">
+                    <p style="line-height: 1.6; font-size: 0.85rem; font-weight: 400;">
                         Bro, you are more than you think. You shine brighter than this full moon. <br><br>
                         Thank you for being so patient with me and for your trust—even if you spend the rest of your time pulling my leg.
                         You’re the best bro, I never deserved but I’m glad you’re here.
@@ -217,20 +299,24 @@
         </div>
         
         <div class="mini-gallery">
-            <div class="photo-card" style="--r: -3deg;"><img src="https://picsum.photos/300/300?stars&random=11"><p>Rare</p></div>
-            <div class="photo-card" style="--r: 4deg;"><img src="https://picsum.photos/300/300?galaxy&random=12"><p>Eternal</p></div>
+            <div class="photo-card" style="--r: -3deg;"><img src="pics/img11.jpg"><p>Rare</p></div>
+            <div class="photo-card" style="--r: 4deg;"><img src="pics/img12.jpg"><p>Eternal</p></div>
         </div>
     </section>
 
     <section id="finale">
-        <h2 style="font-family: 'Dancing Script'; color: var(--secondary-gold); font-size: 2.2rem;">The Unwrapping</h2>
+        <h2 style="font-family: 'Dancing Script'; color: var(--secondary-gold); font-size: 2.2rem; margin-bottom: 20px;">The Unwrapping</h2>
         <div class="gift-container" id="gift" onclick="openGift(this)">
+            <div class="magic-cloud"></div>
             <div class="gift-lid"></div>
-            <div class="gift-box"><div class="gift-ribbon"></div></div>
+            <div class="gift-box">
+                <div class="gift-ribbon"></div>
+                <div class="gift-ribbon-h"></div>
+            </div>
         </div>
         
-        <div style="max-width: 450px; margin-top: 30px; min-height: 120px; padding: 0 20px;">
-            <p id="type-msg" style="font-size: 0.95rem; line-height: 1.7; color: #fff; font-weight: 300;"></p>
+        <div style="max-width: 450px; margin-top: 50px; min-height: 120px; padding: 0 20px;">
+            <p id="type-msg" style="font-size: 1.1rem; line-height: 1.7; color: #fff; font-weight: 400; font-family: 'Dancing Script', cursive;"></p>
         </div>
     </section>
 
@@ -291,27 +377,42 @@
         function blowCandle(el) {
             if(el.classList.contains('blown')) return;
             el.classList.add('blown');
-            document.getElementById('cake-hint').innerText = "WISH RECORDED ✨";
+            document.getElementById('cake-hint').innerText = "Make a Wish! ✨";
+            
+            triggerShootingStar();
             startConfetti(100);
+        }
+
+        function triggerShootingStar() {
+            const container = document.getElementById('shooting-star-container');
+            const star = document.createElement('div');
+            star.className = 'shooting-star animate';
+            container.appendChild(star);
+            setTimeout(() => star.remove(), 1200);
         }
 
         function openGift(el) {
             if(el.classList.contains('opened')) return;
             el.classList.add('opened');
             startConfetti(150);
-            startTypewriter();
+            setTimeout(startTypewriter, 1500);
         }
 
         function startTypewriter() {
-            const msg = "Many more happy returns of the day, Broooooooooo! \n\nYou’re incredible, even if you hate me saying it. Don't ever doubt your worth. \n\nWith Love,\n\nShanmukesh (Bro)";
+            const msg = "Many more happy returns of the day, Broooooooo! \n\nYou’re incredible, even if you hate me saying it. Don't ever doubt your worth. \nWith Love,\nShanmukesh (Bro)";
             const el = document.getElementById('type-msg');
             if(el.innerHTML !== "") return;
             let i = 0;
             function type() {
                 if(i < msg.length) {
-                    el.innerHTML += msg.charAt(i);
+                    let char = msg.charAt(i);
+                    if (char === "\n") {
+                        el.innerHTML += "<br>";
+                    } else {
+                        el.innerHTML += char;
+                    }
                     i++;
-                    setTimeout(type, 50);
+                    setTimeout(type, 60);
                 }
             }
             type();
