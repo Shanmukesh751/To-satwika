@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Satwika 🌕</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --deep-pink: #ff477e;
+            --secondary-gold: #f7d794;
+            --night-black: #020408;
+            --moon-glow: rgba(247, 215, 148, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--night-black);
+            color: #ffffff;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* --- Full Moon & Stars --- */
+        #night-sky {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; background: radial-gradient(circle at 20% 20%, #1b2735 0%, #020408 100%);
+        }
+        
+        .full-moon {
+            position: fixed; top: 5%; right: 10%; width: 100px; height: 100px;
+            background: #fdf6e3; border-radius: 50%;
+            box-shadow: 0 0 50px #f7d794, inset -10px -10px 20px rgba(0,0,0,0.1);
+            z-index: 0; opacity: 0.9;
+        }
+
+        /* --- Physics Rope Pull --- */
+        .rope-system {
+            position: fixed; top: 0; right: 5%; height: 100%; z-index: 1000;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .rope-line {
+            width: 2px; background: linear-gradient(#444, #9e7e5a);
+            height: 35vh; transform-origin: top; transition: height 0.1s;
+        }
+        .rope-handle {
+            width: 50px; height: 50px; background: #d63031; border-radius: 50%;
+            border: 3px solid var(--secondary-gold); cursor: grab;
+            box-shadow: 0 0 20px rgba(214, 48, 49, 0.6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; user-select: none;
+        }
+        .rope-hint {
+            position: absolute; bottom: -60px; width: 120px; text-align: center;
+            font-size: 0.65rem; letter-spacing: 2px; color: var(--secondary-gold);
+            animation: bounce 2s infinite; text-shadow: 0 0 10px black;
+        }
+
+        /* --- Cinematic Curtain --- */
+        .curtain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--night-black); z-index: 500;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: transform 1.8s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+        .curtain.opened { transform: translateY(-100%); }
+
+        section {
+            min-height: 100vh; width: 100%; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 80px 20px;
+            position: relative; text-align: center;
+        }
+
+        .wish-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(3rem, 10vw, 5.5rem);
+            background: linear-gradient(to right, #fff, var(--secondary-gold), var(--primary-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 20px; opacity: 0; transform: scale(0.9);
+            transition: 1.5s;
+        }
+        .active .wish-text { opacity: 1; transform: scale(1); }
+
+        /* --- Interactive Cake --- */
+        .cake-box { position: relative; width: 180px; height: 130px; cursor: pointer; margin: 20px auto; }
+        .cake-base { width: 100%; height: 70px; background: #ff85a2; border-radius: 8px; position: absolute; bottom: 0; border-bottom: 4px solid #ff477e; }
+        .candle { width: 10px; height: 35px; background: var(--secondary-gold); position: absolute; top: 25px; left: 50%; transform: translateX(-50%); }
+        .flame { 
+            width: 12px; height: 20px; background: #ffa500; border-radius: 50% 50% 20% 20%; 
+            position: absolute; top: -20px; box-shadow: 0 0 15px #ffa500;
+            animation: flicker 0.1s infinite alternate;
+        }
+        .blown .flame { display: none; }
+
+        /* --- Interactive Book --- */
+        .book-container { width: 280px; height: 380px; perspective: 1000px; cursor: pointer; margin: 30px 0; }
+        .book { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 1.2s cubic-bezier(0.6, -0.28, 0.735, 0.045); }
+        .book.flipped { transform: rotateY(-180deg); }
+        .page { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 5px 15px 15px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; box-shadow: 10px 10px 30px rgba(0,0,0,0.5); }
+        .page-front { background: #5a0000; border-left: 10px solid #3d0000; color: var(--secondary-gold); }
+        .page-back { background: #fdf6e3; transform: rotateY(180deg); color: #222; text-align: left; overflow: hidden; }
+
+        /* --- Gift Finale --- */
+        .gift-container { position: relative; width: 110px; height: 110px; cursor: pointer; margin: 20px auto; }
+        .gift-box { width: 100%; height: 100%; background: #d63031; border-radius: 8px; position: relative; }
+        .gift-lid { position: absolute; top: -12px; left: -5%; width: 110%; height: 25px; background: #b21f1f; transition: 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2; border-radius: 5px; }
+        .gift-ribbon { position: absolute; left: 50%; transform: translateX(-50%); width: 18px; height: 100%; background: var(--secondary-gold); }
+        .opened .gift-lid { transform: translateY(-70px) rotate(25deg); opacity: 0; }
+
+        /* --- Paced Photo Gallery --- */
+        .mini-gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+            margin: 20px 0;
+        }
+        .photo-card {
+            background: white;
+            padding: 6px 6px 18px 6px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            transform: translateY(20px) rotate(var(--r, 0deg));
+            opacity: 0;
+            transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .active .photo-card { transform: translateY(0) rotate(var(--r, 0deg)); opacity: 1; }
+        .photo-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 2px; }
+        .photo-card p { color: #333; font-family: 'Dancing Script'; font-size: 0.8rem; margin-top: 5px; text-align: center; }
+
+        .music-btn { position: fixed; bottom: 30px; left: 30px; z-index: 1001; background: var(--deep-pink); border: none; width: 45px; height: 45px; border-radius: 50%; color: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1002; }
+
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes flicker { 0% { opacity: 0.8; transform: scale(1); } 100% { opacity: 1; transform: scale(1.1); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="night-sky"></div>
+    <div class="full-moon"></div>
+    <canvas id="confetti"></canvas>
+
+    <!-- Rope UI -->
+    <div class="rope-system" id="rope-system">
+        <div class="rope-line" id="rope-line"></div>
+        <div class="rope-handle" id="rope-handle">✨</div>
+        <div class="rope-hint" id="rope-hint">PULL TO START</div>
+    </div>
+
+    <button class="music-btn" onclick="toggleMusic()" id="music-btn">🎵</button>
+
+    <!-- Initial Reveal -->
+    <div class="curtain" id="curtain">
+        <h2 style="font-family: 'Dancing Script'; font-size: 2rem; color: var(--secondary-gold); text-align: center; padding: 20px;">For the Nightingale under the Moon...</h2>
+    </div>
+
+    <section id="hero">
+        <h1 class="wish-text">Happy Birthday, Satwika!</h1>
+        <p style="letter-spacing: 5px; color: var(--primary-pink); font-size: 0.6rem; text-transform: uppercase; margin-bottom: 20px;">A Night Created Just For You</p>
+        
+        <div class="mini-gallery">
+            <div class="photo-card" style="--r: -3deg;"><img src="https://picsum.photos/300/300?random=1"><p>Radiance</p></div>
+            <div class="photo-card" style="--r: 4deg;"><img src="https://picsum.photos/300/300?random=2"><p>Grace</p></div>
+        </div>
+
+        <div class="cake-box" onclick="blowCandle(this)">
+            <div class="candle"><div class="flame"></div></div>
+            <div class="cake-base"></div>
+            <p id="cake-hint" style="font-size: 0.6rem; color: var(--secondary-gold); margin-top: 90px; letter-spacing: 2px;">CLICK TO BLOW</p>
+        </div>
+    </section>
+
+    <section id="chapter-1">
+        <h2 style="font-family: 'Dancing Script'; color: var(--secondary-gold); font-size: 2rem; margin-bottom: 10px;">The Nightingale's Song</h2>
+        <p style="font-size: 0.85rem; max-width: 300px; line-height: 1.6; opacity: 0.9;">You might not agree with me about ur singing, but when you sing, I would definitely stop to listen. It's a small hobby to you, but a magic potion to me.</p>
+        
+        <div class="mini-gallery">
+            <div class="photo-card" style="--r: 2deg; transition-delay: 0.1s;"><img src="https://picsum.photos/300/300?music&random=3"><p>Melody</p></div>
+            <div class="photo-card" style="--r: -4deg; transition-delay: 0.3s;"><img src="https://picsum.photos/300/300?voice&random=4"><p>Rhythm</p></div>
+            <div class="photo-card" style="--r: 5deg; transition-delay: 0.5s;"><img src="https://picsum.photos/300/300?sing&random=5"><p>Soul</p></div>
+            <div class="photo-card" style="--r: -2deg; transition-delay: 0.7s;"><img src="https://picsum.photos/300/300?art&random=6"><p>Peace</p></div>
+        </div>
+    </section>
+
+    <section id="chapter-2">
+        <h2 style="font-family: 'Dancing Script'; color: var(--secondary-gold); font-size: 2rem; margin-bottom: 10px;">The Heart of Gold</h2>
+        <p style="font-size: 0.85rem; max-width: 300px; line-height: 1.6; opacity: 0.9;">A total foodie by heart and Thanks for not disowning me despite how much I trouble you.</p>
+        
+        <div class="mini-gallery">
+            <div class="photo-card" style="--r: -5deg; transition-delay: 0.1s;"><img src="https://picsum.photos/300/300?food&random=7"><p>Happiness</p></div>
+            <div class="photo-card" style="--r: 3deg; transition-delay: 0.3s;"><img src="https://picsum.photos/300/300?smile&random=8"><p>Kindness</p></div>
+            <div class="photo-card" style="--r: -1deg; transition-delay: 0.5s;"><img src="https://picsum.photos/300/300?nature&random=9"><p>Pure</p></div>
+            <div class="photo-card" style="--r: 6deg; transition-delay: 0.7s;"><img src="https://picsum.photos/300/300?sun&random=10"><p>Forgiving</p></div>
+        </div>
+    </section>
+
+    <section id="story">
+        <div class="book-container" onclick="document.getElementById('book').classList.toggle('flipped')">
+            <div class="book" id="book">
+                <div class="page page-front">
+                    <h3 style="font-family: 'Dancing Script'; font-size: 1.5rem;">A Page from Bro</h3>
+                    <p style="margin-top: 10px; font-size: 0.6rem; opacity: 0.7;">Chapter: Satwika</p>
+                </div>
+                <div class="page page-back">
+                    <p style="line-height: 1.5; font-size: 0.8rem;">
+                        Bro, you are more than you think. You shine brighter than this full moon. <br><br>
+                        Thank you for being so patient with me and for your trust—even if you spend the rest of your time pulling my leg.
+                        You’re the best bro, I never deserved but I’m glad you’re here.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mini-gallery">
+            <div class="photo-card" style="--r: -3deg;"><img src="https://picsum.photos/300/300?stars&random=11"><p>Rare</p></div>
+            <div class="photo-card" style="--r: 4deg;"><img src="https://picsum.photos/300/300?galaxy&random=12"><p>Eternal</p></div>
+        </div>
+    </section>
+
+    <section id="finale">
+        <h2 style="font-family: 'Dancing Script'; color: var(--secondary-gold); font-size: 2.2rem;">The Unwrapping</h2>
+        <div class="gift-container" id="gift" onclick="openGift(this)">
+            <div class="gift-lid"></div>
+            <div class="gift-box"><div class="gift-ribbon"></div></div>
+        </div>
+        
+        <div style="max-width: 450px; margin-top: 30px; min-height: 120px; padding: 0 20px;">
+            <p id="type-msg" style="font-size: 0.95rem; line-height: 1.7; color: #fff; font-weight: 300;"></p>
+        </div>
+    </section>
+
+    <script>
+        // --- Rope Logic ---
+        const handle = document.getElementById('rope-handle');
+        const line = document.getElementById('rope-line');
+        const curtain = document.getElementById('curtain');
+        let isDragging = false;
+        let startY = 0;
+
+        handle.addEventListener('mousedown', startPull);
+        handle.addEventListener('touchstart', startPull);
+
+        function startPull(e) {
+            isDragging = true;
+            startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            document.getElementById('rope-hint').style.display = 'none';
+        }
+
+        window.addEventListener('mousemove', pull);
+        window.addEventListener('touchmove', pull);
+
+        function pull(e) {
+            if (!isDragging) return;
+            const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            const diff = Math.max(0, currentY - startY);
+            if (diff < 180) {
+                line.style.height = (35 + (diff/8)) + 'vh';
+                handle.style.transform = `translateY(${diff}px)`;
+            } else {
+                completePull();
+            }
+        }
+
+        window.addEventListener('mouseup', resetRope);
+        window.addEventListener('touchend', resetRope);
+
+        function resetRope() {
+            if (!isDragging || curtain.classList.contains('opened')) return;
+            isDragging = false;
+            line.style.transition = 'height 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            handle.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            line.style.height = '35vh';
+            handle.style.transform = 'translateY(0)';
+            setTimeout(() => { line.style.transition = ''; handle.style.transition = ''; }, 600);
+        }
+
+        function completePull() {
+            isDragging = false;
+            curtain.classList.add('opened');
+            document.getElementById('rope-system').style.transform = 'translateY(-100vh)';
+            startConfetti(80);
+            if (!audioCtx) toggleMusic();
+        }
+
+        // --- Interactive ---
+        function blowCandle(el) {
+            if(el.classList.contains('blown')) return;
+            el.classList.add('blown');
+            document.getElementById('cake-hint').innerText = "WISH RECORDED ✨";
+            startConfetti(100);
+        }
+
+        function openGift(el) {
+            if(el.classList.contains('opened')) return;
+            el.classList.add('opened');
+            startConfetti(150);
+            startTypewriter();
+        }
+
+        function startTypewriter() {
+            const msg = "Many more happy returns of the day, Broooooooooo! \n\nYou’re incredible, even if you hate me saying it. Don't ever doubt your worth. \n\nWith Love,\n\nShanmukesh (Bro)";
+            const el = document.getElementById('type-msg');
+            if(el.innerHTML !== "") return;
+            let i = 0;
+            function type() {
+                if(i < msg.length) {
+                    el.innerHTML += msg.charAt(i);
+                    i++;
+                    setTimeout(type, 50);
+                }
+            }
+            type();
+        }
+
+        // --- Starfield ---
+        const sky = document.getElementById('night-sky');
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.style.position = 'absolute';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.width = Math.random() * 2 + 'px';
+            star.style.height = star.style.width;
+            star.style.background = 'white';
+            star.style.borderRadius = '50%';
+            star.style.opacity = Math.random();
+            star.style.animation = `flicker ${Math.random() * 4 + 2}s infinite alternate`;
+            sky.appendChild(star);
+        }
+
+        // --- Observers ---
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('active');
+            });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('section').forEach(s => observer.observe(s));
+
+        // --- Music ---
+        let audioCtx = null;
+        function toggleMusic() {
+            const btn = document.getElementById('music-btn');
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                playMelody();
+                btn.innerHTML = '⏸';
+            } else if (audioCtx.state === 'running') {
+                audioCtx.suspend();
+                btn.innerHTML = '🎵';
+            } else {
+                audioCtx.resume();
+                btn.innerHTML = '⏸';
+            }
+        }
+
+        function playMelody() {
+            const notes = [261.63, 261.63, 293.66, 261.63, 349.23, 329.63];
+            let i = 0;
+            function next() {
+                if (!audioCtx || audioCtx.state !== 'running') return;
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(notes[i % notes.length], audioCtx.currentTime);
+                g.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.8);
+                i++; setTimeout(next, 800);
+            }
+            next();
+        }
+
+        // --- Confetti ---
+        const canvas = document.getElementById('confetti');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+        function startConfetti(count) {
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width, y: -20,
+                    size: Math.random() * 4 + 2,
+                    color: ['#ff85a2', '#f7d794', '#fff'][Math.floor(Math.random()*3)],
+                    vY: Math.random() * 3 + 2, vX: (Math.random() - 0.5) * 4
+                });
+            }
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                p.y += p.vY; p.x += p.vX;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                if(p.y > canvas.height) particles.splice(i, 1);
+            });
+            requestAnimationFrame(animateConfetti);
+        }
+        animateConfetti();
+        
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes flicker { from { opacity: 0.2; } to { opacity: 1; } }`;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
